@@ -8,15 +8,15 @@ namespace E_Shop.Repositories
 {
     public interface IBasketRepo
     {
-        IQueryable<Basket> GetBaskets();
-        Basket GetBasketByID(Guid basketId);
-        Basket GetCustomerBasket(Guid customerId);
-        Product GetProductFromBasket(Guid customerId, Guid productId);
-        Basket CreateBasket(Guid customerId);
-        void AddProductToBasket(Guid basketId, Product product);
-        void RemoveBasketItem(Basket basket, BasketItem basketItem);
-        void DeleteBasket(Guid basketId);
-        void UpdateBasketItemQuantity(BasketItem basketItem, int newQty);
+        Task<List<Basket>> GetBaskets();
+        Task<Basket> GetBasketByID(Guid basketId);
+        Task<Basket> GetCustomerBasket(Guid customerId);
+        Task<Product> GetProductFromBasket(Guid customerId, Guid productId);
+        Task<Basket> CreateBasket(Guid customerId);
+        Task AddProductToBasket(Guid basketId, Product product);
+        Task RemoveBasketItem(Basket basket, BasketItem basketItem);
+        Task DeleteBasket(Guid basketId);
+        Task UpdateBasketItemQuantity(BasketItem basketItem, int newQty);
         bool CanBeProductAddedToCart(int productStockQty);
     }
 }

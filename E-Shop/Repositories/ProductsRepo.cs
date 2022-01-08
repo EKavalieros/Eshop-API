@@ -17,18 +17,13 @@ namespace E_Shop.Repositories
             _context = context;
         }
 
-        public void CreateProduct(Product product)
+        public async Task CreateProduct(Product product)
         {
-            _context.Products.Add(product);
-            _context.SaveChanges();
+            await _context.Products.AddAsync(product);
+            await SaveAsync();
         }
 
-        public IQueryable<Product> GetAllProducts()
-        {
-            return _context.Products;
-        }
-
-        public Paging<Product> GetProducts(ProductFilters productFilters)
+        public async Task<Paging<Product>> GetProducts(ProductFilters productFilters)
         {
             var products = _context.Products.AsQueryable();
 
@@ -45,15 +40,15 @@ namespace E_Shop.Repositories
 
             if (productFilters.PageSize != null)
             {
-                return Paging<Product>.PagedList(products, 1, (int)productFilters.PageSize);
+                return await Paging<Product>.PagedList(products, 1, (int)productFilters.PageSize);
             }
-            return Paging<Product>.PagedList(products, 1, products.Count());
 
+            return await Paging<Product>.PagedList(products, 1, products.Count());
         }
 
-        public Product GetProductByID(Guid id)
+        public async Task<Product> GetProductByID(Guid id)
         {
-            return _context.Products.FirstOrDefault(p => p.Id.Equals(id));
+            return await _context.Products.FindAsync(id);
         }
 
         public bool CheckIfValidQuantity(Guid productId, int basketItemQty, int newQty)
@@ -61,15 +56,15 @@ namespace E_Shop.Repositories
             return newQty >= 0 && (_context.Products.FirstOrDefault(p => p.Id.Equals(productId)).StockQty + basketItemQty) >= newQty;
         }
 
-        public void DeleteProduct(Product product)
+        public async Task DeleteProduct(Product product)
         {
             _context.Products.Remove(product);
-            _context.SaveChanges();
+            await SaveAsync();
         }
 
-        public void UpdateProduct(Product product)
+        public async Task UpdateProduct(Product product)
         {
-            var oldProduct = _context.Products.FirstOrDefault(p => p.Id.Equals(product.Id));
+            var oldProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id.Equals(product.Id));
 
             if (oldProduct != null)
             {
@@ -79,12 +74,17 @@ namespace E_Shop.Repositories
                 oldProduct.StockQty = product.StockQty;
             }
 
-            _context.SaveChanges();
+            await SaveAsync();
         }
 
         public bool CheckIfBrandExists(Guid brandId)
         {
-            return _context.Brands.Any(b=>b.Id.Equals(brandId));
+            return _context.Brands.Any(b => b.Id.Equals(brandId));
+        }
+
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

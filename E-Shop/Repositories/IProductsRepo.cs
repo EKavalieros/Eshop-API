@@ -9,12 +9,11 @@ namespace E_Shop.Repositories
 {
     public interface IPrdctRepo
     {
-        IQueryable<Product> GetAllProducts();
-        Paging<Product> GetProducts(ProductFilters productFilters);
-        Product GetProductByID(Guid id);
-        void CreateProduct(Product product);
-        void DeleteProduct(Product product);
-        void UpdateProduct(Product product);
+        Task<Paging<Product>> GetProducts(ProductFilters productFilters);
+        Task<Product> GetProductByID(Guid id);
+        Task CreateProduct(Product product);
+        Task DeleteProduct(Product product);
+        Task UpdateProduct(Product product);
         bool CheckIfValidQuantity(Guid productId, int basketItemQty, int newQty);
         bool CheckIfBrandExists(Guid brandId);
     }

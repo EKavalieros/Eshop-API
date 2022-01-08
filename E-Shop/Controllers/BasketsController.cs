@@ -24,16 +24,16 @@ namespace E_Shop.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<BasketReadDto>> GetAllBaskets()
+        public async Task<ActionResult<IEnumerable<BasketReadDto>>> GetAllBaskets()
         {
-            var baskets = _eshopService.Baskets.GetBaskets();
+            var baskets = await _eshopService.Baskets.GetBaskets();
             return Ok(_mapper.Map<IEnumerable<BasketReadDto>>(baskets));
         }
 
         [HttpGet("{customerId}", Name = "GetBasketProducts")]
-        public ActionResult<IEnumerable<BasketItemsReadDto>> GetBasketProducts(Guid customerId)
+        public async Task<ActionResult<IEnumerable<BasketItemsReadDto>>> GetBasketProducts(Guid customerId)
         {
-            var basket = _eshopService.Baskets.GetCustomerBasket(customerId);
+            var basket = await _eshopService.Baskets.GetCustomerBasket(customerId);
 
             if (basket == null)
             {
@@ -44,16 +44,16 @@ namespace E_Shop.Controllers
         }
 
         [HttpGet("CartProducts/{customerId}/{productId}", Name = "GetProductFromBasket")]
-        public ActionResult<ProductReadDto> GetProductFromBasket(Guid customerId, Guid productId)
+        public async Task<ActionResult<ProductReadDto>> GetProductFromBasket(Guid customerId, Guid productId)
         {
-            var basket = _eshopService.Baskets.GetCustomerBasket(customerId);
+            var basket = await _eshopService.Baskets.GetCustomerBasket(customerId);
 
             if (basket == null)
             {
                 return NotFound("Basket Not Found");
             }
 
-            var product = _eshopService.Baskets.GetProductFromBasket(customerId, productId);
+            var product = await _eshopService.Baskets.GetProductFromBasket(customerId, productId);
             if (product == null)
             {
                 return NotFound("Product Not Found");
@@ -63,7 +63,7 @@ namespace E_Shop.Controllers
         }
 
         [HttpPost("CartProducts/Add/{customerId}/{productId}", Name = "AddItemToBasket")]
-        public ActionResult AddItemToBasket(Guid customerId, Guid productId)
+        public async Task<ActionResult> AddItemToBasket(Guid customerId, Guid productId)
         {
             if (customerId == Guid.Empty)
             {
@@ -71,25 +71,25 @@ namespace E_Shop.Controllers
             }
 
             var basketRepo = _eshopService.Baskets;
-            var basket = basketRepo.GetCustomerBasket(customerId);
+            var basket = await basketRepo.GetCustomerBasket(customerId);
 
             if (basket == null)
             {
-                basket = basketRepo.CreateBasket(customerId);
+                basket = await basketRepo.CreateBasket(customerId);
             }
 
-            var cartProduct = basketRepo.GetProductFromBasket(customerId, productId);
+            var cartProduct = await basketRepo.GetProductFromBasket(customerId, productId);
             if (cartProduct == null)
             {
-                var product = _eshopService.Products.GetProductByID(productId);
+                var product = await _eshopService.Products.GetProductByID(productId);
+
                 if (product == null)
-                {
                     return NotFound("Product Not Found");
-                }
+
 
                 if (basketRepo.CanBeProductAddedToCart(product.StockQty))
                 {
-                    basketRepo.AddProductToBasket(basket.Id, product);
+                    await basketRepo.AddProductToBasket(basket.Id, product);
                     var productReadDto = _mapper.Map<ProductReadDto>(product);
                     return CreatedAtRoute("GetProductFromBasket", new { customerId = customerId, productId = productId }, productReadDto);
                 }
@@ -106,9 +106,9 @@ namespace E_Shop.Controllers
         }
 
         [HttpPut("CartProducts/UpdateQuantity/{customerId}/{basketItemId}/{newQty}", Name = "UpdateQuantity")]
-        public ActionResult UpdateQuantity(Guid customerId, Guid basketItemId, int newQty)
+        public async Task<ActionResult> UpdateQuantity(Guid customerId, Guid basketItemId, int newQty)
         {
-            var basket = _eshopService.Baskets.GetCustomerBasket(customerId);
+            var basket = await _eshopService.Baskets.GetCustomerBasket(customerId);
 
             if (basket == null)
                 return NotFound("Basket Not Found");
@@ -119,15 +119,15 @@ namespace E_Shop.Controllers
                 return NotFound("Basket Item Not Found");
 
             if (_eshopService.Products.CheckIfValidQuantity(basketItem.ProductId, basketItem.ProductQty, newQty))
-                _eshopService.Baskets.UpdateBasketItemQuantity(basketItem, newQty);
+                await _eshopService.Baskets.UpdateBasketItemQuantity(basketItem, newQty);
 
             return Ok($"Cart Item Quantity: {basketItem.ProductQty}");
         }
 
         [HttpDelete("CartProducts/Remove/{customerId}/{basketItemId}")]
-        public ActionResult RemoveBasketItem(Guid customerId, Guid basketItemId)
+        public async Task<ActionResult> RemoveBasketItem(Guid customerId, Guid basketItemId)
         {
-            var basket = _eshopService.Baskets.GetCustomerBasket(customerId);
+            var basket = await _eshopService.Baskets.GetCustomerBasket(customerId);
 
             if (basket == null)
                 return NotFound("Basket Not Found");
@@ -137,15 +137,15 @@ namespace E_Shop.Controllers
             if (basketItem == null)
                 return NotFound("Basket Item Not Found");
 
-            _eshopService.Baskets.RemoveBasketItem(basket, basketItem);
+            await _eshopService.Baskets.RemoveBasketItem(basket, basketItem);
 
             return Ok("Basket Item Deleted Successfully");
         }
 
         [HttpDelete("{basketId}")]
-        public ActionResult DeleteBasket(Guid basketId)
+        public async Task<ActionResult> DeleteBasket(Guid basketId)
         {
-            _eshopService.Baskets.DeleteBasket(basketId);
+            await _eshopService.Baskets.DeleteBasket(basketId);
 
             return Ok("Basket Deleted Successfully");
         }

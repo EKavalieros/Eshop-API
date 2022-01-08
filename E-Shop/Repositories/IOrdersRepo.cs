@@ -8,9 +8,9 @@ namespace E_Shop.Repositories
 {
     public interface IOrdersRepo
     {
-        IQueryable<Order> GetAllOrders();
-        Order GetOrderByID(Guid orderId);
-        Order SubmitOrder(Basket basket);
-        void DeleteOrder(Order order);
+        Task<List<Order>> GetAllOrders();
+        Task<Order> GetOrderByID(Guid orderId);
+        Task<Order> SubmitOrder(Basket basket);
+        Task DeleteOrder(Order order);
     }
 }

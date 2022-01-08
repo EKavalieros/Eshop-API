@@ -1,4 +1,5 @@
 ﻿using E_Shop.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,24 +30,24 @@ namespace E_Shop.Repositories
             }
         }
 
-        public void DeleteOrder(Order order)
+        public async Task DeleteOrder(Order order)
         {
             _context.OrderDetails.Where(b => b.OrderId.Equals(order.Id)).ToList().Clear();
             _context.Orders.Remove(order);
-            _context.SaveChanges();
+            await SaveAsync();
         }
 
-        public IQueryable<Order> GetAllOrders()
+        public async Task <List<Order>> GetAllOrders()
         {
-            return _context.Orders;
+            return await _context.Orders.ToListAsync();
         }
 
-        public Order GetOrderByID(Guid orderId)
+        public async Task<Order> GetOrderByID(Guid orderId)
         {
-            return _context.Orders.FirstOrDefault(o => o.Id.Equals(orderId));
+            return await _context.Orders.FirstOrDefaultAsync(o => o.Id.Equals(orderId));
         }
 
-        public Order SubmitOrder(Basket basket)
+        public async Task<Order> SubmitOrder(Basket basket)
         {
             var order = new Order()
             {
@@ -54,7 +55,7 @@ namespace E_Shop.Repositories
                 CustomerId = basket.CustomerId
             };
 
-            _context.Orders.Add(order);
+            await _context.Orders.AddAsync(order);
 
             var basketItems = basket.CartProducts;
 
@@ -70,15 +71,19 @@ namespace E_Shop.Repositories
                     ProductQty = basketItem.ProductQty
                 };
 
-                _context.OrderDetails.Add(orderDetails);
+               await _context.OrderDetails.AddAsync(orderDetails);
             }
 
             _context.Baskets.Remove(basket);
             _context.BasketItems.RemoveRange(basketItems);
 
-            _context.SaveChanges();
-
+            await SaveAsync();
             return order;
+        }
+
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

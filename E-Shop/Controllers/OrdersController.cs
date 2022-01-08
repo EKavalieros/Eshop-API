@@ -24,17 +24,17 @@ namespace E_Shop.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<OrderReadDto>> GetAllOrders()
+        public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetAllOrders()
         {
-            var orders = _eshopService.Orders.GetAllOrders();
+            var orders = await _eshopService.Orders.GetAllOrders();
 
             return Ok(_mapper.Map<IEnumerable<OrderReadDto>>(orders));
         }
 
         [HttpGet("{id}")]
-        public ActionResult<IEnumerable<OrderReadDto>> GetOrderByID(Guid id)
+        public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetOrderByID(Guid id)
         {
-            var order = _eshopService.Orders.GetOrderByID(id);
+            var order = await _eshopService.Orders.GetOrderByID(id);
 
             if (order == null)
                 return NotFound("Order Not Found");
@@ -43,33 +43,33 @@ namespace E_Shop.Controllers
         }
 
         [HttpPost("{basketId}", Name = "PlaceOrder")]
-        public ActionResult<OrderReadDto> PlaceOrder(Guid basketId)
+        public async Task<ActionResult<OrderReadDto>> PlaceOrder(Guid basketId)
         {
             if (basketId == Guid.Empty)
             {
                 return NotFound("Basket Not Found");
             }
 
-            var basket = _eshopService.Baskets.GetBasketByID(basketId);
+            var basket = await _eshopService.Baskets.GetBasketByID(basketId);
 
             if (basket == null)
             {
                 return NotFound("Basket Not Found");
             }
 
-            var order = _eshopService.Orders.SubmitOrder(basket);
+            var order = await _eshopService.Orders.SubmitOrder(basket);
 
             return Ok(_mapper.Map<OrderReadDto>(order));
         }
 
         [HttpDelete("{orderId}")]
-        public ActionResult DeleteOrder(Guid orderId)
+        public async Task<ActionResult> DeleteOrder(Guid orderId)
         {
-            var order = _eshopService.Orders.GetOrderByID(orderId);
+            var order = await _eshopService.Orders.GetOrderByID(orderId);
             if (order == null)
                 return NotFound("Order Not Found");
 
-            _eshopService.Orders.DeleteOrder(order);
+            await _eshopService.Orders.DeleteOrder(order);
 
             return Ok("Order Deleted Successfully");
         }
